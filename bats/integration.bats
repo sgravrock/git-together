@@ -168,6 +168,7 @@ AUTHORS
 @test "not in a git repo" {
   cd $BATS_TMPDIR
 
+  git-together with
   run git-together with
   [ "$status" -eq 0 ]
 }
