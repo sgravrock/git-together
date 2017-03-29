@@ -66,6 +66,7 @@ branches:
     # Release tags
     - /^v\d+\.\d+\.\d+.*$/
     - master
+    - appveyor
 
 notifications:
   - provider: Email
