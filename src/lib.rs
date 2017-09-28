@@ -164,25 +164,17 @@ impl<C: config::Config> GitTogether<C> {
         Ok(())
     }
 
-	pub fn all_aliases(&self) -> Result<HashMap<String, String>> {
-        let mut aliases = HashMap::new();
-        let raw = self.config.get_all("alias.")?;
-        for (name, value) in raw {
-            let trimmed_name = name.trim_left_matches("alias.");
-            aliases.insert(trimmed_name.to_string(), value);
-        }
-        Ok(aliases)
-	}
-
 	pub fn signoff_aliases(&self) -> Vec<String> {
         let signoffs = vec![
             "commit".to_string(),
             "merge".to_string(),
             "rebase".to_string()
         ];
-        self.all_aliases().unwrap().into_iter()
+        self.config.get_all("alias.")
+            .unwrap()
+            .into_iter()
             .filter(|&(_, ref v)| signoffs.contains(&v))
-            .map(|(k, _)| k)
+            .map(|(k, _)| k.trim_left_matches("alias.").to_string())
             .collect()
 	}
 
@@ -388,24 +380,6 @@ mod tests {
 
         gt.rotate_active().unwrap();
         assert_eq!(gt.get_active().unwrap(), vec!["nn", "jh"]);
-    }
-
-    #[test]
-    fn all_aliases() {
-        let config =
-            MockConfig::new(&[("alias.ci", "commit"),
-                              ("alias.st", "status")]);
-        let author_parser = AuthorParser { domain: Some("rocinante.com".into()) };
-        let gt = GitTogether {
-            config: config,
-            author_parser: author_parser,
-        };
-
-        let aliases = gt.all_aliases().unwrap();
-        let mut expected = HashMap::new();
-        expected.insert("ci".to_string(), "commit".to_string());
-        expected.insert("st".to_string(), "status".to_string());
-        assert_eq!(aliases, expected);
     }
 
     #[test]
