@@ -164,18 +164,19 @@ impl<C: config::Config> GitTogether<C> {
         Ok(())
     }
 
-	pub fn signoff_aliases(&self) -> Vec<String> {
+	pub fn signoff_aliases(&self) -> Result<Vec<String>> {
         let signoffs = vec![
             "commit".to_string(),
             "merge".to_string(),
             "rebase".to_string()
         ];
         self.config.get_all("alias.")
-            .unwrap()
-            .into_iter()
-            .filter(|&(_, ref v)| signoffs.contains(&v))
-            .map(|(k, _)| k.trim_left_matches("alias.").to_string())
-            .collect()
+            .map(|aliases| {
+                aliases.into_iter()
+                    .filter(|&(_, ref v)| signoffs.contains(&v))
+                    .map(|(k, _)| k.trim_left_matches("alias.").to_string())
+                    .collect()
+            })
 	}
 
     pub fn all_authors(&self) -> Result<HashMap<String, Author>> {
@@ -395,7 +396,7 @@ mod tests {
             author_parser: author_parser,
         };
 
-        let aliases = gt.signoff_aliases();
+        let aliases = gt.signoff_aliases().unwrap();
         assert_eq!(aliases.len(), 3);
         assert_eq!(aliases.contains(&"ci".to_string()), true);
         assert_eq!(aliases.contains(&"m".to_string()), true);
