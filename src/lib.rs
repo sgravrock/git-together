@@ -29,7 +29,7 @@ pub fn run() -> Result<()> {
     let args: Vec<&str> = all_args.iter().map(String::as_ref).collect();
 
     let triggers = ["with", "together"];
-    let signoffs = ["commit", "merge", "revert"];
+    let signoffs = signoff_cmds()?;
     match *args.as_slice() {
         [sub_cmd] if triggers.contains(&sub_cmd) => {
             let gt = GitTogether::new()?;
@@ -71,7 +71,7 @@ pub fn run() -> Result<()> {
                 println!("{}", author);
             }
         }
-        [sub_cmd, ref rest..] if signoffs.contains(&sub_cmd) => {
+        [sub_cmd, ref rest..] if signoffs.contains(&(sub_cmd.to_string())) => {
             let mut gt = GitTogether::new()?;
 
             if sub_cmd == "merge" {
@@ -97,6 +97,14 @@ pub fn run() -> Result<()> {
     };
 
     Ok(())
+}
+
+fn signoff_cmds() -> Result<Vec<String>> {
+    let gt = GitTogether::new()?;
+    let mut signoffs = vec!["commit".to_string(), "merge".to_string(), "revert".to_string()];
+    let mut aliases = gt.signoff_aliases()?;
+    signoffs.append(&mut aliases);
+    Ok(signoffs)
 }
 
 pub struct GitTogether<C> {
